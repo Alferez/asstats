@@ -1,0 +1,54 @@
+#!/bin/bash
+PARAM=''
+
+if [ ! -f /data/AS-Stats/conf/knownlinks ]
+then
+	echo "Error: /data/AS-Stats/conf/knownlinks NOT FOUND."
+	exit
+fi
+
+if [ -z $ASN ]
+then
+	echo "Error: ASN Variable not defined."
+	exit
+fi
+
+if [ -z $NETFLOW ] && [ -z $SFLOW ]
+then
+	echo "No Flow specificated."
+	exit
+fi
+
+#Env
+if [ "$SFLOW" == 1 ]
+then
+	PARAM="$PARAM -P 6343"
+fi
+
+if [ "$NETFLOW" == 1 ]
+then
+        PARAM="$PARAM -p 2055"
+fi
+
+
+PARAM="$PARAM -r /data/AS-Stats/rrd/ -k /data/AS-Stats/conf/knownlinks -a $ASN -n -m /data/AS-Stats/perl-ip2as/tools/ip2asn.json"
+
+echo "Starting Cron"
+/etc/init.d/cron start
+
+echo "Starting PHP"
+#Deb 8
+#/etc/init.d/php5-fpm start
+#Deb 9
+/etc/init.d/php7.3-fpm start
+
+echo "Starting NginX"
+/etc/init.d/nginx start
+
+echo "Upgrading AS Info"
+(echo begin; echo verbose; for i in $(seq 1 65535); do echo "AS$i"; done; echo end) | netcat whois.cymru.com 43 | /data/AS-Stats/contrib/generate-asinfo.py > /data/AS-Stats/www/asinfo.txt
+
+echo "Starting AS-Stats"
+cd /data/AS-Stats/bin
+perl /data/AS-Stats/bin/rrd-extractstats.pl /data/AS-Stats/rrd /data/AS-Stats/conf/knownlinks /data/AS-Stats/asstats_day.txt
+./asstatd.pl $PARAM
