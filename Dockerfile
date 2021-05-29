@@ -27,7 +27,7 @@ RUN git clone https://github.com/manuelkasper/AS-Stats.git
 WORKDIR /data/AS-Stats
 RUN rm -rf www
 RUN git clone https://github.com/nidebr/as-stats-gui.git
-RUN mv as-stats-gui www; sed -i 's|/data/as-stats/|/data/AS-Stats/|g' /data/AS-Stats/www/config.inc; sed -i 's|/data/asstats/|/data/AS-Stats/|g' /data/AS-Stats/www/config.inc; sed -i 's|/AS-Stats/asstats/|/AS-Stats/|g' /data/AS-Stats/www/config.inc
+RUN mv as-stats-gui www; sed -i 's|/data/as-stats/|/data/AS-Stats/|g' /data/AS-Stats/www/config.inc; sed -i 's|/data/asstats/|/data/AS-Stats/|g' /data/AS-Stats/www/config.inc; sed -i '/Nicolas Debrigode/a $footer .= "&nbsp;Docker Image created by Jose A. Alf&eacute;rez (www.alferez.es).";' /data/AS-Stats/www/func.inc ;sed -i 's|/AS-Stats/asstats/|/AS-Stats/|g' /data/AS-Stats/www/config.inc
 
 RUN mkdir /data/AS-Stats/rrd; chmod 777 /data/AS-Stats/rrd; mkdir /data/AS-Stats/www/asset; chmod 777 /data/AS-Stats/www/asset
 RUN git clone https://github.com/JackSlateur/perl-ip2as.git
