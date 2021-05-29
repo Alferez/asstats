@@ -13,6 +13,8 @@ then
 	exit
 fi
 
+sed -i "s/my_asn = \"\"/my_asn = \"$ASN\"/g" /data/AS-Stats/www/config.inc
+
 if [ -z $NETFLOW ] && [ -z $SFLOW ]
 then
 	echo "No Flow specificated."

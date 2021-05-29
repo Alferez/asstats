@@ -27,13 +27,19 @@ RUN git clone https://github.com/manuelkasper/AS-Stats.git
 WORKDIR /data/AS-Stats
 RUN rm -rf www
 RUN git clone https://github.com/nidebr/as-stats-gui.git
-RUN mv as-stats-gui www; sed -i 's|/data/as-stats/|/data/AS-Stats/|g' /data/AS-Stats/www/config.inc; sed -i 's|/data/asstats/|/data/AS-Stats/|g' /data/AS-Stats/www/config.inc
+RUN mv as-stats-gui www; sed -i 's|/data/as-stats/|/data/AS-Stats/|g' /data/AS-Stats/www/config.inc; sed -i 's|/data/asstats/|/data/AS-Stats/|g' /data/AS-Stats/www/config.inc; sed -i 's|/AS-Stats/asstats/|/AS-Stats/|g' /data/AS-Stats/www/config.inc
 
 RUN mkdir /data/AS-Stats/rrd; chmod 777 /data/AS-Stats/rrd; mkdir /data/AS-Stats/www/asset; chmod 777 /data/AS-Stats/www/asset
 RUN git clone https://github.com/JackSlateur/perl-ip2as.git
 #RUN ln -s /data/AS-Stats/perl-ip2as/ip2as.pm /data/AS-Stats/bin/ip2as.pm
 RUN cp /data/AS-Stats/perl-ip2as/ip2as.pm /usr/lib/x86_64-linux-gnu/perl-base/
 RUN if [ -f /data/AS-Stats/asstats_day.txt ]; then chmod 777 /data/AS-Stats/asstats_day.txt; fi
+
+RUN sed -i 's|asinfo.txt|/data/AS-Stats/www/asinfo.txt|g' /data/AS-Stats/www/config.inc
+RUN sed -i 's|showpeeras = false;|showpeeras = true;|g' /data/AS-Stats/www/config.inc
+RUN sed -i 's|compat_rrdtool12 = false|compat_rrdtool12 = true|g' /data/AS-Stats/www/config.inc
+
+
 
 RUN echo '*/5 * * * * root perl /data/AS-Stats/bin/rrd-extractstats.pl /data/AS-Stats/rrd /data/AS-Stats/conf/knownlinks /data/AS-Stats/asstats_day.txt' > /etc/cron.d/as-stat
 RUN echo '0 0 1 * * * root (echo begin; echo verbose; for i in $(seq 1 65535); do echo "AS$i"; done; echo end) | netcat whois.cymru.com 43 | /data/AS-Stats/contrib/generate-asinfo.py > /data/AS-Stats/www/asinfo.txt' >> /etc/cron.d/as-stat
@@ -44,9 +50,10 @@ RUN echo '0 0 1 * * * root (echo begin; echo verbose; for i in $(seq 1 65535); d
 # RUN php5enmod sqlite3
 
 #Deb 9
-RUN apt install -y nginx php-fpm php-sqlite3
+RUN apt install -y nginx php-fpm php-sqlite3 php-gd php-odbc php-pear php-xml php-xmlrpc php-curl libmcrypt-dev php-dev
 RUN phpenmod sqlite3 pdo_sqlite
-
+RUN pecl install mcrypt-1.0.4
+RUN phpenmod mcrypt
 COPY assets/nginx /etc/nginx/sites-available/default
 
 ### Limpiamos
